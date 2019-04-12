@@ -53,7 +53,7 @@ namespace BooksLibrary
             }
             set
             {
-                if (Validation.isAValidString(value)) publisher = value;
+                if (Validation.isAValidString(value) || !Validation.isNotEmpty(value)) publisher = value;
                 else throw new System.InvalidOperationException("The provided string is not a valid string!");
             }
         }

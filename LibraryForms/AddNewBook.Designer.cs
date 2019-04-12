@@ -30,6 +30,7 @@
         {
             this.components = new System.ComponentModel.Container();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.textBoxGenre = new System.Windows.Forms.TextBox();
             this.listBoxGenres = new System.Windows.Forms.ListBox();
             this.label6 = new System.Windows.Forms.Label();
             this.buttonAddGenre = new System.Windows.Forms.Button();
@@ -48,7 +49,6 @@
             this.errorProvider1 = new System.Windows.Forms.ErrorProvider(this.components);
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.statusLabel = new System.Windows.Forms.ToolStripStatusLabel();
-            this.textBoxGenre = new System.Windows.Forms.TextBox();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.errorProvider1)).BeginInit();
             this.statusStrip1.SuspendLayout();
@@ -75,6 +75,15 @@
             this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Book information";
+            // 
+            // textBoxGenre
+            // 
+            this.textBoxGenre.Location = new System.Drawing.Point(419, 44);
+            this.textBoxGenre.Name = "textBoxGenre";
+            this.textBoxGenre.Size = new System.Drawing.Size(164, 22);
+            this.textBoxGenre.TabIndex = 12;
+            this.textBoxGenre.Validating += new System.ComponentModel.CancelEventHandler(this.textBoxGenre_Validating);
+            this.textBoxGenre.Validated += new System.EventHandler(this.textBoxGenre_Validated);
             // 
             // listBoxGenres
             // 
@@ -195,6 +204,7 @@
             // 
             // buttonReset
             // 
+            this.buttonReset.CausesValidation = false;
             this.buttonReset.Location = new System.Drawing.Point(314, 357);
             this.buttonReset.Name = "buttonReset";
             this.buttonReset.Size = new System.Drawing.Size(99, 36);
@@ -205,6 +215,7 @@
             // 
             // buttonExit
             // 
+            this.buttonExit.CausesValidation = false;
             this.buttonExit.Location = new System.Drawing.Point(499, 357);
             this.buttonExit.Name = "buttonExit";
             this.buttonExit.Size = new System.Drawing.Size(99, 36);
@@ -233,15 +244,6 @@
             this.statusLabel.ForeColor = System.Drawing.Color.Red;
             this.statusLabel.Name = "statusLabel";
             this.statusLabel.Size = new System.Drawing.Size(0, 17);
-            // 
-            // textBoxGenre
-            // 
-            this.textBoxGenre.Location = new System.Drawing.Point(419, 44);
-            this.textBoxGenre.Name = "textBoxGenre";
-            this.textBoxGenre.Size = new System.Drawing.Size(164, 22);
-            this.textBoxGenre.TabIndex = 12;
-            this.textBoxGenre.Validating += new System.ComponentModel.CancelEventHandler(this.textBoxGenre_Validating);
-            this.textBoxGenre.Validated += new System.EventHandler(this.textBoxGenre_Validated);
             // 
             // AddNewBook
             // 

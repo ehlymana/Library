@@ -41,9 +41,9 @@ namespace BooksLibrary
         }
         public void createAllTables()
         {
-            createBooksTable();
-            createGenresTable();
             createAuthorsTable();
+            createGenresTable();
+            createBooksTable();
             createGenresToBooksTable();
         }
         public void createBooksTable()
@@ -98,6 +98,7 @@ namespace BooksLibrary
         }
         public void addBook(Book b)
         {
+            int id = 0;
             using (NpgsqlCommand cmd = Connection.CreateCommand())
             {
                 // first part - insert the book into the table
@@ -105,16 +106,25 @@ namespace BooksLibrary
                     "(NAME, AUTHOR, PUBLISHER, RELEASEDATE) "
                     + "VALUES ('" + b.Name + "', '" + b.Author.AuthorID + "', '"
                     + b.Publisher + "', '" + b.ReleaseDate.Year + "-"
-                    + b.ReleaseDate.Month + "-" + b.ReleaseDate.Day + "')" +
-                    "  RETURNING ID;";
-                long id = cmd.ExecuteNonQuery();
+                    + b.ReleaseDate.Month + "-" + b.ReleaseDate.Day + "') RETURNING ID;";
+                NpgsqlDataReader dr = cmd.ExecuteReader();
+                dr.Read();
+                id = (int)dr[0];
+                dr.Close();
+            }
+            using (NpgsqlCommand cmd = Connection.CreateCommand())
+            {
                 // second part - insert all of the corellations between genres and the book
-                foreach (Genre g in b.Genres) {
-                    cmd.CommandText = "INSERT INTO GENRES_TO_BOOKS " +
+                if (b.Genres.Count == 0) return;
+                cmd.CommandText = "INSERT INTO GENRES_TO_BOOKS " +
                         "(BOOK_ID, GENRE_ID) "
-                        + "VALUES (" + id + ", " + g.GenreID + ");";
-                    cmd.ExecuteNonQuery();
+                        + "VALUES ";
+                foreach (Genre g in b.Genres)
+                {
+                    cmd.CommandText += "(" + id + ", " + g.GenreID + "),";
                 }
+                cmd.CommandText = cmd.CommandText.Substring(0, cmd.CommandText.Length - 1) + ";";
+                cmd.ExecuteNonQuery();
             }
         }
 
@@ -126,7 +136,11 @@ namespace BooksLibrary
                     "(NAME) "
                     + "VALUES ('" + g.Name+ "')" +
                     "  RETURNING ID;";
-                return cmd.ExecuteNonQuery();
+                cmd.ExecuteNonQuery();
+                cmd.CommandText = "SELECT ID FROM GENRES WHERE NAME = '" + g.Name + "';";
+                NpgsqlDataReader dr = cmd.ExecuteReader();
+                dr.Read();
+                return (int)dr[0];
             }
         }
 
@@ -136,27 +150,25 @@ namespace BooksLibrary
             {
                 cmd.CommandText = "INSERT INTO AUTHORS " +
                     "(NAME) "
-                    + "VALUES ('" + a.Name + "')" +
-                    "  RETURNING ID;";
-                return cmd.ExecuteNonQuery();
+                    + "VALUES ('" + a.Name + "');";
+                cmd.ExecuteNonQuery();
+                cmd.CommandText = "SELECT ID FROM AUTHORS WHERE NAME = '" + a.Name + "';";
+                NpgsqlDataReader dr = cmd.ExecuteReader();
+                dr.Read();
+                return (int)dr[0];
             }
         }
 
-        public void editBook(Book oldBook, Book newBook)
+        public void editBook(Book book)
         {
             using (NpgsqlCommand cmd = Connection.CreateCommand())
             {
-                string allGenres = "";
-                foreach (Genre genre in newBook.Genres)
-                {
-                    allGenres += genre + ",";
-                }
                 cmd.CommandText = "UPDATE BOOKS " +
-                    "SET NAME = '" + newBook.Name + "', AUTHOR = '" + newBook.Author.AuthorID
-                    + "', PUBLISHER = '" + newBook.Publisher
-                    + "', RELEASEDATE = '" + newBook.ReleaseDate.Year + "-"
-                    + newBook.ReleaseDate.Month + "-" + newBook.ReleaseDate.Day + "'"
-                    + " WHERE ID = " + oldBook.BookID + ";";
+                    "SET NAME = '" + book.Name + "', AUTHOR = '" + book.Author.AuthorID
+                    + "', PUBLISHER = '" + book.Publisher
+                    + "', RELEASEDATE = '" + book.ReleaseDate.Year + "-"
+                    + book.ReleaseDate.Month + "-" + book.ReleaseDate.Day + "'"
+                    + " WHERE ID = " + book.BookID + ";";
                 cmd.ExecuteNonQuery();
             }
         }
@@ -173,6 +185,12 @@ namespace BooksLibrary
         }
         public bool deleteBook(string ID)
         {
+            using (NpgsqlCommand cmd = Connection.CreateCommand())
+            {
+                cmd.CommandText = "DELETE FROM GENRES_TO_BOOKS " +
+                    "WHERE BOOK_ID = " + ID + ";";
+                cmd.ExecuteNonQuery();
+            }
             int rowsAffected = 0;
             using (NpgsqlCommand cmd = Connection.CreateCommand())
             {
@@ -187,6 +205,8 @@ namespace BooksLibrary
         {
             using (NpgsqlCommand cmd = Connection.CreateCommand())
             {
+                cmd.CommandText = "DELETE FROM GENRES_TO_BOOKS;";
+                cmd.ExecuteNonQuery();
                 cmd.CommandText = "DELETE FROM BOOKS;";
                 cmd.ExecuteNonQuery();
             }
@@ -201,8 +221,9 @@ namespace BooksLibrary
                 NpgsqlDataReader dr = cmd.ExecuteReader();
                 while (dr.Read())
                 {
-                    genres.Add(new Genre((long)dr[0], (string)dr[1]));
+                    genres.Add(new Genre((int)dr[0], (string)dr[1]));
                 }
+                dr.Close();
             }
             return genres;
         }
@@ -216,8 +237,9 @@ namespace BooksLibrary
                 NpgsqlDataReader dr = cmd.ExecuteReader();
                 while (dr.Read())
                 {
-                    authors.Add(new Author((long)dr[0], (string)dr[1]));
+                    authors.Add(new Author((int)dr[0], (string)dr[1]));
                 }
+                dr.Close();
             }
             return authors;
         }
@@ -232,7 +254,8 @@ namespace BooksLibrary
                 try
                 {
                     dr.Read();
-                    Genre g = new Genre((long)dr[0], (string)dr[1]);
+                    Genre g = new Genre((int)dr[0], (string)dr[1]);
+                    dr.Close();
                     return g;
                 }
                 catch
@@ -252,7 +275,29 @@ namespace BooksLibrary
                 try
                 {
                     dr.Read();
-                    Author a = new Author((long)dr[0], (string)dr[1]);
+                    Author a = new Author((int)dr[0], (string)dr[1]);
+                    dr.Close();
+                    return a;
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+        }
+
+        public Author findAuthorByID(string ID)
+        {
+            using (NpgsqlCommand cmd = Connection.CreateCommand())
+            {
+                cmd.CommandText = "SELECT * FROM AUTHORS" +
+                    " WHERE ID = '" + ID + "';";
+                NpgsqlDataReader dr = cmd.ExecuteReader();
+                try
+                {
+                    dr.Read();
+                    Author a = new Author((int)dr[0], (string)dr[1]);
+                    dr.Close();
                     return a;
                 }
                 catch
@@ -274,8 +319,8 @@ namespace BooksLibrary
                 {
                     while (dr.Read())
                     {
-                        if (!ids.Contains((long)dr[0])) {
-                            ids.Add((long)dr[0]);
+                        if (!ids.Contains((int)dr[0])) {
+                            ids.Add((int)dr[0]);
                         }
                     }
                     return ids;

@@ -27,6 +27,7 @@ namespace LibraryForms
         {
             initialForm = form;
             database = existingDatabase;
+            InitializeComponent();
             database.connect();
             List<Genre> genres = database.findAllGenres();
             List<Author> authors = database.findAllAuthors();
@@ -40,7 +41,6 @@ namespace LibraryForms
                 listBoxAuthor.Items.Add(a.Name);
             }
             RefreshAllData();
-            InitializeComponent();
         }
         // shows all data in the books table
         public void RefreshAllData()
@@ -58,6 +58,12 @@ namespace LibraryForms
         // filters data depending on the selected author and genre
         public void FilterData()
         {
+            if (ids.Count == 0)
+            {
+                dt = new DataTable();
+                dataGridView.DataSource = dt;
+                return;
+            }
             database.connect();
             string query = "SELECT * FROM BOOKS WHERE AUTHOR = " + author.AuthorID
                 + "AND ID = ";
@@ -73,7 +79,7 @@ namespace LibraryForms
             dataGridView.DataSource = dt;
             database.disconnect();
         }
-
+        #region Button Clicks
         // go back to dashboard
         private void buttonDashboard_Click(object sender, EventArgs e)
         {
@@ -84,20 +90,36 @@ namespace LibraryForms
         // filter books if both author and genre are selected
         private void buttonFilter_Click(object sender, EventArgs e)
         {
-            authorName = listBoxAuthor.SelectedItem.ToString();
-            genreName = listBoxGenre.SelectedItem.ToString();
-            // both author and genre selected - show filtered data
-            if (authorName.Length > 0 && genreName.Length > 0)
+            try
             {
-                database.connect();
-                genre = database.findGenreByName(genreName);
-                author = database.findAuthorByName(authorName);
-                ids = database.findBooksByGenre(genre);
-                database.disconnect();
-                FilterData();
+                // not both are selected - show all data
+                if (listBoxAuthor.SelectedItem == null || listBoxGenre.SelectedItem == null)
+                {
+                    RefreshAllData();
+                    return;
+                }
+                authorName = listBoxAuthor.SelectedItem.ToString();
+                genreName = listBoxGenre.SelectedItem.ToString();
+                // both author and genre selected - show filtered data
+                if (authorName.Length > 0 && genreName.Length > 0)
+                {
+                    database.connect();
+                    genre = database.findGenreByName(genreName);
+                    database.disconnect();
+                    database.connect();
+                    author = database.findAuthorByName(authorName);
+                    database.disconnect();
+                    database.connect();
+                    ids = database.findBooksByGenre(genre);
+                    database.disconnect();
+                    FilterData();
+                }
             }
-            // not both are selected - show all data
-            else RefreshAllData();
+            catch
+            {
+
+            }
         }
+        #endregion
     }
 }

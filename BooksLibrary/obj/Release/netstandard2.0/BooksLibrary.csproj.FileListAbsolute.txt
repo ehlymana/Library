@@ -1,0 +1,8 @@
+C:\Users\Emsel\Desktop\Library\BooksLibrary\bin\Release\netstandard2.0\BooksLibrary.deps.json
+C:\Users\Emsel\Desktop\Library\BooksLibrary\bin\Release\netstandard2.0\BooksLibrary.dll
+C:\Users\Emsel\Desktop\Library\BooksLibrary\bin\Release\netstandard2.0\BooksLibrary.pdb
+C:\Users\Emsel\Desktop\Library\BooksLibrary\obj\Release\netstandard2.0\BooksLibrary.csproj.CoreCompileInputs.cache
+C:\Users\Emsel\Desktop\Library\BooksLibrary\obj\Release\netstandard2.0\BooksLibrary.AssemblyInfoInputs.cache
+C:\Users\Emsel\Desktop\Library\BooksLibrary\obj\Release\netstandard2.0\BooksLibrary.AssemblyInfo.cs
+C:\Users\Emsel\Desktop\Library\BooksLibrary\obj\Release\netstandard2.0\BooksLibrary.dll
+C:\Users\Emsel\Desktop\Library\BooksLibrary\obj\Release\netstandard2.0\BooksLibrary.pdb

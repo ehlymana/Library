@@ -32,36 +32,49 @@ namespace LibraryForms
         // user properly entered book data - the book can be added
         private void buttonAddBook_Click(object sender, EventArgs e)
         {
-            // first we need to check whether everything is valid
-            if (validated.Contains(false)) return;
-            database.connect();
-            Author a = database.findAuthorByName(textBoxAuthor.Text);
-            if (a == null)
+            try
             {
-                long id = database.addAuthor(new Author(textBoxAuthor.Text));
-                a = new Author(id, textBoxAuthor.Text);
-            }
-            List<Genre> genres = new List<Genre>();
-            foreach (string item in listBoxGenres.Items)
-            {
+                if (!Validation.isNotEmpty(textBoxPublisher.Text)) validated[2] = true;
+                // first we need to check whether everything is valid
+                if (validated.Contains(false)) return;
                 database.connect();
-                Genre genre = database.findGenreByName(item);
-                if (genre == null)
-                {
-                    long id = database.addGenre(new Genre(item));
-                    genres.Add(new Genre(id, item));
-                }
-                else genres.Add(genre);
+                Author a = database.findAuthorByName(textBoxAuthor.Text);
                 database.disconnect();
+                if (a == null)
+                {
+                    database.connect();
+                    long id = database.addAuthor(new Author(textBoxAuthor.Text));
+                    database.disconnect();
+                    a = new Author(id, textBoxAuthor.Text);
+                }
+                List<Genre> genres = new List<Genre>();
+                foreach (string item in listBoxGenres.Items)
+                {
+                    database.connect();
+                    Genre genre = database.findGenreByName(item);
+                    database.disconnect();
+                    if (genre == null)
+                    {
+                        database.connect();
+                        long id = database.addGenre(new Genre(item));
+                        database.disconnect();
+                        genres.Add(new Genre(id, item));
+                    }
+                    else genres.Add(genre);
+                }
+                Book newBook = new Book(textBoxName.Text, a, textBoxPublisher.Text, genres, dateTimePicker.Value);
+                database.connect();
+                database.addBook(newBook);
+                database.disconnect();
+                MessageBox.Show("Book successfully added!", "Message from Database", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                initialForm.RefreshData();
+                initialForm.Show();
+                this.Close();
             }
-            Book newBook = new Book(textBoxName.Text, a, textBoxPublisher.Text, genres, dateTimePicker.Value);
-            database.connect();
-            database.addBook(newBook);
-            database.disconnect();
-            MessageBox.Show("Book successfully added!", "Message from Database", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            initialForm.RefreshData();
-            initialForm.Show();
-            this.Close();
+            catch
+            {
+                statusLabel.Text = "Error while adding book!";
+            }
         }
         // refresh all data on form (delete all input)
         private void buttonReset_Click(object sender, EventArgs e)
@@ -79,14 +92,16 @@ namespace LibraryForms
             textBoxName.BackColor = Color.White;
             textBoxAuthor.BackColor = Color.White;
             textBoxPublisher.BackColor = Color.White;
+            textBoxGenre.BackColor = Color.White;
             validated = new List<bool> { false, false, false, false };
         }
         // go back to dashboard
         private void buttonExit_Click(object sender, EventArgs e)
         {
+            AutoValidate = AutoValidate.Disable;
+            this.Close();
             initialForm.RefreshData();
             initialForm.Show();
-            this.Close();
         }
         #endregion
         #region Validation
@@ -105,7 +120,7 @@ namespace LibraryForms
             {
                 e.Cancel = true;
                 errorProvider1.SetError(textBoxName, message);
-                statusLabel.Text = "Error in validation of book name";
+                statusLabel.Text = "Error in validation of book name!";
                 textBoxName.BackColor = Color.LightCoral;
             }
         }
@@ -124,7 +139,7 @@ namespace LibraryForms
             {
                 e.Cancel = true;
                 errorProvider1.SetError(textBoxAuthor, message);
-                statusLabel.Text = "Error in validation of book author";
+                statusLabel.Text = "Error in validation of book author!";
                 textBoxAuthor.BackColor = Color.LightCoral;
             }
         }
@@ -134,7 +149,7 @@ namespace LibraryForms
             string message = "";
             if (!Validation.isNotEmpty(textBoxPublisher.Text))
             {
-                message = "The provided name must not be empty!";
+                validated[2] = true;
             }
             else if (!Validation.isAValidString(textBoxPublisher.Text))
             {
@@ -144,7 +159,7 @@ namespace LibraryForms
             {
                 e.Cancel = true;
                 errorProvider1.SetError(textBoxPublisher, message);
-                statusLabel.Text = "Error in validation of book publisher";
+                statusLabel.Text = "Error in validation of book publisher!";
                 textBoxPublisher.BackColor = Color.LightCoral;
             }
         }
@@ -159,7 +174,7 @@ namespace LibraryForms
             {
                 e.Cancel = true;
                 errorProvider1.SetError(textBoxGenre, message);
-                statusLabel.Text = "Error in validation of book genres";
+                statusLabel.Text = "Error in validation of book genres!";
                 textBoxGenre.BackColor = Color.LightCoral;
             }
         }

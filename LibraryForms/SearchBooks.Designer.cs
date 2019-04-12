@@ -46,7 +46,7 @@
             // 
             this.buttonDashboard.Location = new System.Drawing.Point(313, 514);
             this.buttonDashboard.Name = "buttonDashboard";
-            this.buttonDashboard.Size = new System.Drawing.Size(140, 32);
+            this.buttonDashboard.Size = new System.Drawing.Size(169, 32);
             this.buttonDashboard.TabIndex = 0;
             this.buttonDashboard.Text = "Back to Dashboard";
             this.buttonDashboard.UseVisualStyleBackColor = true;
@@ -73,9 +73,9 @@
             // 
             // buttonFilter
             // 
-            this.buttonFilter.Location = new System.Drawing.Point(313, 245);
+            this.buttonFilter.Location = new System.Drawing.Point(313, 252);
             this.buttonFilter.Name = "buttonFilter";
-            this.buttonFilter.Size = new System.Drawing.Size(140, 32);
+            this.buttonFilter.Size = new System.Drawing.Size(169, 32);
             this.buttonFilter.TabIndex = 2;
             this.buttonFilter.Text = "Filter";
             this.buttonFilter.UseVisualStyleBackColor = true;

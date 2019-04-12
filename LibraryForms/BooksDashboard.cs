@@ -50,115 +50,145 @@ namespace LibraryForms
         // all edits saved in the list will be executed
         private void buttonEdit_Click(object sender, EventArgs e)
         {
-            database.connect();
-            foreach (string [] edit in editData)
+            try
             {
-                database.editBookByColumn(edit[0], edit[1], edit[2]);
+                database.connect();
+                foreach (string[] edit in editData)
+                {
+                    database.editBookByColumn(edit[0], edit[1], edit[2]);
+                }
+                database.disconnect();
+                this.RefreshData();
+                statusLabel.Text = "Book successfully edited!";
             }
-            database.disconnect();
-            this.RefreshData();
+            catch
+            {
+                statusLabel.Text = "Error while editing book!";
+            }
         }
         // selected book will be deleted
         private void buttonDelete_Click(object sender, EventArgs e)
         {
-            database.connect();
-            database.deleteBook(dataGridView.SelectedRows[0].Cells["ID"].Value.ToString());
-            database.disconnect();
-            this.RefreshData();
+            try
+            {
+                database.connect();
+                database.deleteBook(dataGridView.SelectedRows[0].Cells["ID"].Value.ToString());
+                database.disconnect();
+                this.RefreshData();
+                statusLabel.Text = "Book successfully deleted!";
+            }
+            catch
+            {
+                statusLabel.Text = "Error while deleting book!";
+            }
         }
         // exporting all data as JSON
         private void buttonExport_Click(object sender, EventArgs e)
         {
-            string JSON = "";
-            JSON += "[";
-            for (int i = 0; i < dt.Rows.Count; i++)
+            try
             {
-                JSON += "{";
-                for (int j = 0; j < dt.Columns.Count; j++)
+                string JSON = "";
+                JSON += "[";
+                for (int i = 0; i < dt.Rows.Count; i++)
                 {
-                    JSON += "\"" + dt.Columns[j].ColumnName.ToString() + "\":\"" + dt.Rows[i][j].ToString() + "\",";
+                    JSON += "{";
+                    for (int j = 0; j < dt.Columns.Count; j++)
+                    {
+                        JSON += "\"" + dt.Columns[j].ColumnName.ToString() + "\":\"" + dt.Rows[i][j].ToString() + "\",";
+                    }
+                    JSON = JSON.Substring(0, JSON.Length - 1);
+                    JSON += "},";
                 }
                 JSON = JSON.Substring(0, JSON.Length - 1);
-                JSON += "},";
-            }
-            JSON = JSON.Substring(0, JSON.Length - 1);
-            JSON += "]";
-            using (var fbd = new FolderBrowserDialog())
-            {
-                DialogResult result = fbd.ShowDialog();
-
-                if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+                JSON += "]";
+                using (var fbd = new FolderBrowserDialog())
                 {
-                    File.WriteAllText(fbd.SelectedPath + "\\exportedData.json", JSON);
-                    MessageBox.Show("Data successfully exported to " + fbd.SelectedPath + "\\exportedData.json!", "Message from Database", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    DialogResult result = fbd.ShowDialog();
+
+                    if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+                    {
+                        File.WriteAllText(fbd.SelectedPath + "\\exportedData.json", JSON);
+                        statusLabel.Text = "Data successfully exported to " + fbd.SelectedPath + "\\exportedData.json!";
+                    }
                 }
+                this.RefreshData();
             }
-            this.RefreshData();
+            catch
+            {
+                statusLabel.Text = "Error while exporting data!";
+            }
         }
         // importing all data from JSON
         private void buttonImport_Click(object sender, EventArgs e)
         {
-            using (var fbd = new FolderBrowserDialog())
+            try
             {
-                DialogResult result = fbd.ShowDialog();
-
-                if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+                using (var fbd = new OpenFileDialog())
                 {
-                    string JSON = File.ReadAllText(fbd.SelectedPath);
-                    string[] objects = JSON.Split('{');
-                    database.connect();
-                    database.deleteAllBooks();
-                    database.disconnect();
-                    foreach (string book in objects)
+                    DialogResult result = fbd.ShowDialog();
+
+                    if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.FileName))
                     {
-                        string id = "", name = "", author = "", publisher = "", releaseDate = "";
-                        int i = 0;
-                        while (book.Substring(i, i + 2) != "id") i++;
-                        i += 5;
-                        while (book.Substring(i, i + 1) != "\"")
-                        {
-                            id += book[i];
-                            i++;
-                        }
-                        i += 10;
-                        while (book.Substring(i, i + 1) != "\"")
-                        {
-                            name += book[i];
-                            i++;
-                        }
-                        i += 12;
-                        while (book.Substring(i, i + 1) != "\"")
-                        {
-                            author += book[i];
-                            i++;
-                        }
-                        i += 15;
-                        while (book.Substring(i, i + 1) != "\"")
-                        {
-                            publisher += book[i];
-                            i++;
-                        }
-                        i += 17;
-                        while (book.Substring(i, i + 1) != "\"")
-                        {
-                            releaseDate += book[i];
-                            i++;
-                        }
+                        string JSON = File.ReadAllText(fbd.FileName);
+                        string[] objects = JSON.Split('{');
                         database.connect();
-                        Author a = database.findAuthorByName(author);
-                        if (a == null)
-                        {
-                            long authorID = database.addAuthor(new Author(author));
-                            a = new Author(authorID, author);
-                        }
                         database.deleteAllBooks();
-                        database.addBook(new Book(name, a, publisher, null, DateTime.Parse(releaseDate)));
                         database.disconnect();
+                        foreach (string book in objects)
+                        {
+                            if (book.Length < 20) continue;
+                            string id = "", name = "", author = "", publisher = "", releaseDate = "";
+                            int i = 0;
+                            while (book.Substring(i, 2) != "id") i++;
+                            i += 5;
+                            while (book.Substring(i, 1) != "\"")
+                            {
+                                id += book[i];
+                                i++;
+                            }
+                            i += 10;
+                            while (book.Substring(i, 1) != "\"")
+                            {
+                                name += book[i];
+                                i++;
+                            }
+                            i += 12;
+                            while (book.Substring(i, 1) != "\"")
+                            {
+                                author += book[i];
+                                i++;
+                            }
+                            i += 15;
+                            while (book.Substring(i, 1) != "\"")
+                            {
+                                publisher += book[i];
+                                i++;
+                            }
+                            i += 17;
+                            while (book.Substring(i, 1) != "\"")
+                            {
+                                releaseDate += book[i];
+                                i++;
+                            }
+                            database.connect();
+                            Author a = database.findAuthorByID(author);
+                            if (a == null)
+                            {
+                                long authorID = database.addAuthor(new Author(author));
+                                a = new Author(authorID, author);
+                            }
+                            database.addBook(new Book(name, a, publisher, new List<Genre>(), DateTime.Parse(releaseDate)));
+                            database.disconnect();
+                        }
+                        statusLabel.Text = "Data successfully imported from " + fbd.FileName + "!";
                     }
-                    MessageBox.Show("Data successfully imported from " + fbd.SelectedPath + "!", "Message from Database", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
+                this.RefreshData();
             }
-            this.RefreshData();
+            catch
+            {
+                statusLabel.Text = "Error while importing data!";
+            }
         }
         // filtering books - takes us to a new form
         private void buttonSearch_Click(object sender, EventArgs e)
@@ -183,15 +213,25 @@ namespace LibraryForms
             string ID = dataGridView.Rows[e.RowIndex].Cells["ID"].Value.ToString();
             editData.Add(new string[] { column, value, ID });
         }
-        // database change happening upon double click on edited content
-        private void dataGridView_CellContentDoubleClick(object sender, DataGridViewCellEventArgs e)
+        // database change happening upon double click on edited row
+        private void dataGridView_CellMouseDoubleClick(object sender, DataGridViewCellMouseEventArgs e)
         {
-            string column = dataGridView.Columns[e.ColumnIndex].Name;
-            string value = dataGridView.Rows[e.RowIndex].Cells[column].Value.ToString();
-            string ID = dataGridView.Rows[e.RowIndex].Cells["ID"].Value.ToString();
-            database.connect();
-            database.editBookByColumn(column, value, ID);
-            database.disconnect();
+            try
+            {
+                string ID = dataGridView.Rows[e.RowIndex].Cells["ID"].Value.ToString();
+                string name = dataGridView.Rows[e.RowIndex].Cells["NAME"].Value.ToString();
+                string author = dataGridView.Rows[e.RowIndex].Cells["AUTHOR"].Value.ToString();
+                string publisher = dataGridView.Rows[e.RowIndex].Cells["PUBLISHER"].Value.ToString();
+                string releaseDate = dataGridView.Rows[e.RowIndex].Cells["RELEASEDATE"].Value.ToString();
+                database.connect();
+                database.editBook(new Book(Int32.Parse(ID), name, new Author(Int32.Parse(author), "Name"), publisher, new List<Genre>(), DateTime.Parse(releaseDate)));
+                database.disconnect();
+                statusLabel.Text = "Book successfully edited!";
+            }
+            catch
+            {
+                statusLabel.Text = "Error while editing book!";
+            }
         }
         #endregion
     }
