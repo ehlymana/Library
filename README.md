@@ -6,7 +6,7 @@
 
 **BooksLibrary** contains the classes necessary for the application to work correctly.
 
-The *Book* class is a helper for the database entries.
+The *Book*, *Author* and *Genre* classes are helpers for the database entries.
 The *Validation* class is a helper for the data validation.
 The *PostgreSQL* class is a helper for database connection.
 
@@ -28,4 +28,4 @@ The *SearchBooks* form is the form for filtering database entries.
 
 The application uses a custom-made **PostgreSQL** connection.
 
-2019. © Krupalija Ehlimana
+2019. © *Krupalija Ehlimana*

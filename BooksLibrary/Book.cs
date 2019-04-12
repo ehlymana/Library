@@ -7,8 +7,9 @@ namespace BooksLibrary
     {
         #region Attributes
         long bookID;
-        string name, author, publisher;
-        List<string> genres = new List<string>();
+        string name, publisher;
+        Author author;
+        List<Genre> genres = new List<Genre>();
         DateTime releaseDate;
         #endregion
         #region Properties
@@ -34,14 +35,14 @@ namespace BooksLibrary
                 else throw new System.InvalidOperationException("The provided string is not a valid name!");
             }
         }
-        public string Author {
+        public Author Author {
             get
             {
                 return author;
             }
             set
             {
-                if (Validation.isAValidName(value)) author = value;
+                if (Validation.isAValidName(value.Name)) author = value;
                 else throw new System.InvalidOperationException("The provided string is not a valid name!");
             }
         }
@@ -56,16 +57,16 @@ namespace BooksLibrary
                 else throw new System.InvalidOperationException("The provided string is not a valid string!");
             }
         }
-        public List<string> Genres {
+        public List<Genre> Genres {
             get
             {
                 return genres;
             }
             set
             {
-                foreach (string genre in value)
+                foreach (Genre genre in value)
                 {
-                    if (!Validation.isNotEmpty(genre)) throw new System.InvalidOperationException("The provided string is not a valid genre!");
+                    if (!Validation.isNotEmpty(genre.Name)) throw new System.InvalidOperationException("The provided string is not a valid genre!");
                 }
                 genres = value;
             }
@@ -82,7 +83,16 @@ namespace BooksLibrary
         }
         #endregion
         #region Constructor
-        public Book (string name, string author, string publisher, List<string> genres, DateTime releaseDate)
+        public Book(long id, string name, Author author, string publisher, List<Genre> genres, DateTime releaseDate)
+        {
+            BookID = id;
+            Name = name;
+            Author = author;
+            Publisher = publisher;
+            Genres = genres;
+            ReleaseDate = releaseDate;
+        }
+        public Book (string name, Author author, string publisher, List<Genre> genres, DateTime releaseDate)
         {
             Name = name;
             Author = author;

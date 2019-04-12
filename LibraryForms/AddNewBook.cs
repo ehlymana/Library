@@ -13,6 +13,7 @@ namespace LibraryForms
 {
     public partial class AddNewBook : Form
     {
+        List<bool> validated = new List<bool> { false, false, false, false };
         PostgreSQL database;
         BooksDashboard initialForm;
         public AddNewBook(PostgreSQL existingDatabase, BooksDashboard form)
@@ -31,12 +32,29 @@ namespace LibraryForms
         // user properly entered book data - the book can be added
         private void buttonAddBook_Click(object sender, EventArgs e)
         {
-            List<string> genres = new List<string>();
+            // first we need to check whether everything is valid
+            if (validated.Contains(false)) return;
+            database.connect();
+            Author a = database.findAuthorByName(textBoxAuthor.Text);
+            if (a == null)
+            {
+                long id = database.addAuthor(new Author(textBoxAuthor.Text));
+                a = new Author(id, textBoxAuthor.Text);
+            }
+            List<Genre> genres = new List<Genre>();
             foreach (string item in listBoxGenres.Items)
             {
-                genres.Add(item);
+                database.connect();
+                Genre genre = database.findGenreByName(item);
+                if (genre == null)
+                {
+                    long id = database.addGenre(new Genre(item));
+                    genres.Add(new Genre(id, item));
+                }
+                else genres.Add(genre);
+                database.disconnect();
             }
-            Book newBook = new Book(textBoxName.Text, textBoxAuthor.Text, textBoxPublisher.Text, genres, dateTimePicker.Value);
+            Book newBook = new Book(textBoxName.Text, a, textBoxPublisher.Text, genres, dateTimePicker.Value);
             database.connect();
             database.addBook(newBook);
             database.disconnect();
@@ -61,6 +79,7 @@ namespace LibraryForms
             textBoxName.BackColor = Color.White;
             textBoxAuthor.BackColor = Color.White;
             textBoxPublisher.BackColor = Color.White;
+            validated = new List<bool> { false, false, false, false };
         }
         // go back to dashboard
         private void buttonExit_Click(object sender, EventArgs e)
@@ -149,6 +168,7 @@ namespace LibraryForms
             errorProvider1.Clear();
             textBoxName.BackColor = Color.White;
             statusLabel.Text = "";
+            validated[0] = true;
         }
 
         private void textBoxAuthor_Validated(object sender, EventArgs e)
@@ -156,6 +176,7 @@ namespace LibraryForms
             errorProvider1.Clear();
             textBoxAuthor.BackColor = Color.White;
             statusLabel.Text = "";
+            validated[1] = true;
         }
 
         private void textBoxPublisher_Validated(object sender, EventArgs e)
@@ -163,16 +184,14 @@ namespace LibraryForms
             errorProvider1.Clear();
             textBoxPublisher.BackColor = Color.White;
             statusLabel.Text = "";
-        }
-        private void comboBoxGenres_Validated(object sender, EventArgs e)
-        {
-
+            validated[2] = true;
         }
         private void textBoxGenre_Validated(object sender, EventArgs e)
         {
             errorProvider1.Clear();
             textBoxGenre.BackColor = Color.White;
             statusLabel.Text = "";
+            validated[3] = true;
         }
         #endregion
     }

@@ -30,7 +30,7 @@ namespace LibraryForms
         public void RefreshData()
         {
             database.connect();
-            database.createBooksTable();
+            database.createAllTables();
             string query = "SELECT * FROM BOOKS";
             NpgsqlDataAdapter da = new NpgsqlDataAdapter(query, database.Connection);
             ds.Reset();
@@ -111,7 +111,7 @@ namespace LibraryForms
                     database.disconnect();
                     foreach (string book in objects)
                     {
-                        string id = "", name = "", author = "", genres = "", publisher = "", releaseDate = "";
+                        string id = "", name = "", author = "", publisher = "", releaseDate = "";
                         int i = 0;
                         while (book.Substring(i, i + 2) != "id") i++;
                         i += 5;
@@ -132,12 +132,6 @@ namespace LibraryForms
                             author += book[i];
                             i++;
                         }
-                        i += 12;
-                        while (book.Substring(i, i + 1) != "\"")
-                        {
-                            genres += book[i];
-                            i++;
-                        }
                         i += 15;
                         while (book.Substring(i, i + 1) != "\"")
                         {
@@ -150,15 +144,15 @@ namespace LibraryForms
                             releaseDate += book[i];
                             i++;
                         }
-                        string[] allGenres = genres.Split(',');
-                        List<string> listOfGenres = new List<string>();
-                        foreach (string s in allGenres)
-                        {
-                            listOfGenres.Add(s);
-                        }
                         database.connect();
+                        Author a = database.findAuthorByName(author);
+                        if (a == null)
+                        {
+                            long authorID = database.addAuthor(new Author(author));
+                            a = new Author(authorID, author);
+                        }
                         database.deleteAllBooks();
-                        database.addBook(new Book(name, author, publisher, listOfGenres, DateTime.Parse(releaseDate)));
+                        database.addBook(new Book(name, a, publisher, null, DateTime.Parse(releaseDate)));
                         database.disconnect();
                     }
                     MessageBox.Show("Data successfully imported from " + fbd.SelectedPath + "!", "Message from Database", MessageBoxButtons.OK, MessageBoxIcon.Information);
